@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tamagotchi</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            background-color: white;
+            border-radius: 20px;
+            padding: 20px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .tamagotchi {
+            text-align: center;
+            font-size: 80px;
+            margin: 20px 0;
+        }
+
+        .status-bar {
+            margin: 10px 0;
+            background-color: #eee;
+            border-radius: 5px;
+            height: 20px;
+        }
+
+        .status-fill {
+            height: 100%;
+            border-radius: 5px;
+            transition: width 0.3s ease;
+        }
+
+        .buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        button {
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            background-color: #4CAF50;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+
+        button:active {
+            transform: scale(0.95);
+        }
+
+        .message {
+            text-align: center;
+            margin: 10px 0;
+            min-height: 20px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="tamagotchi" id="pet">😊</div>
+        <div class="message" id="message"></div>
+        
+        <div>Hunger:
+            <div class="status-bar">
+                <div class="status-fill" id="hunger-bar" style="width: 50%; background-color: #ff5722;"></div>
+            </div>
+        </div>
+        
+        <div>Happiness:
+            <div class="status-bar">
+                <div class="status-fill" id="happiness-bar" style="width: 50%; background-color: #ffeb3b;"></div>
+            </div>
+        </div>
+        
+        <div>Health:
+            <div class="status-bar">
+                <div class="status-fill" id="health-bar" style="width: 50%; background-color: #4CAF50;"></div>
+            </div>
+        </div>
+
+        <div class="buttons">
+            <button onclick="feed()">🍔 Feed</button>
+            <button onclick="play()">⚽ Play</button>
+            <button onclick="heal()">💊 Heal</button>
+        </div>
+    </div>
+
+    <script>
+        let state = {
+            hunger: 50,
+            happiness: 50,
+            health: 50,
+            isAlive: true
+        };
+
+        const emojiStates = {
+            happy: '😊',
+            hungry: '😋',
+            sick: '🤢',
+            dead: '💀',
+            playing: '⚽'
+        };
+
+        function updateStatus() {
+            // Update status bars
+            document.getElementById('hunger-bar').style.width = state.hunger + '%';
+            document.getElementById('happiness-bar').style.width = state.happiness + '%';
+            document.getElementById('health-bar').style.width = state.health + '%';
+            
+            // Update tamagotchi emoji
+            const petElement = document.getElementById('pet');
+            if (!state.isAlive) {
+                petElement.textContent = emojiStates.dead;
+                return;
+            }
+            
+            if (state.health < 30) {
+                petElement.textContent = emojiStates.sick;
+            } else if (state.hunger > 70) {
+                petElement.textContent = emojiStates.hungry;
+            } else {
+                petElement.textContent = emojiStates.happy;
+            }
+        }
+
+        function checkStatus() {
+            if (state.health <= 0 || state.hunger >= 100 || state.happiness <= 0) {
+                state.isAlive = false;
+                document.getElementById('message').textContent = 'Your pet has died!';
+                clearInterval(gameLoop);
+            }
+        }
+
+        function feed() {
+            if (!state.isAlive) return;
+            state.hunger = Math.max(0, state.hunger - 15);
+            state.health = Math.min(100, state.health + 5);
+            updateStatus();
+        }
+
+        function play() {
+            if (!state.isAlive) return;
+            state.happiness = Math.min(100, state.happiness + 15);
+            state.hunger = Math.min(100, state.hunger + 10);
+            document.getElementById('pet').textContent = emojiStates.playing;
+            setTimeout(updateStatus, 1000);
+        }
+
+        function heal() {
+            if (!state.isAlive) return;
+            if (state.happiness >= 30) {
+                state.health = Math.min(100, state.health + 20);
+                state.happiness -= 20;
+            }
+            updateStatus();
+        }
+
+        // Game loop
+        const gameLoop = setInterval(() => {
+            if (!state.isAlive) return;
+            
+            state.hunger = Math.min(100, state.hunger + 2);
+            state.happiness = Math.max(0, state.happiness - 1);
+            
+            if (state.hunger > 70) {
+                state.health -= 3;
+            }
+            
+            checkStatus();
+            updateStatus();
+        }, 3000);
+
+        // Initial setup
+        updateStatus();
+    </script>
+</body>
+</html>
